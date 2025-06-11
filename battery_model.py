@@ -34,8 +34,8 @@ class BatteryModel:
         else:
             rr = self.Dr
         R1 = self._R1(params, soc, rr)
-        R2 = self._R2(params, soc, rr)
-        C1 = self._C1(params, soc, rr)
+        R2 = max(self._R2(params, soc, rr), 1e-3)
+        C1 = max(self._C1(params, soc, rr), 1e-3)
         V0 = self._V0(params, soc, rr)
 
         voltage = ((self.Q/C + I*R2) * np.exp(-(t / (R2 * C1)))) + V0 - (I*(R1 + R2))

@@ -16,7 +16,7 @@ class GeneticAlgorithm:
     def evaluate(self, population, df, C, fitness_function, isCharging):
         return [fitness_function(ind, df, C, isCharging) for ind in population]
 
-    def select_parents(self, population, fitness, tournament_size=3):
+    def select_parents(self, population, fitness, tournament_size=20):
         parents = []
         for _ in range(len(population) // 2):
             candidates = random.sample(list(zip(population, fitness)), tournament_size)
