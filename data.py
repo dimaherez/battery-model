@@ -2,10 +2,10 @@ import pandas as pd
 
 class DataProvider:
     def __init__(self):
-        self.file_path = "data_v3_02_11_to_06_10.xlsx"
+        self.file_path = "data_test.xlsx" # data_test.xlsx data_v3_02_11_to_06_10.xlsx
         self.cols = ["Timestamp", "SoC(%)", "Battery Current(A)", "Battery Voltage(V)"]
-        self.searching_current = 10
-        self.spread = 3
+        self.searching_current = 2
+        self.spread = 2
         self.min_current = self.searching_current - self.spread
         self.max_current = self.searching_current + self.spread
 
