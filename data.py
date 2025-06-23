@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy.polynomial.polynomial import Polynomial
 
 class DataProvider:
     def __init__(self):
@@ -32,22 +33,40 @@ class DataProvider:
         return grouped
     
     def get_grouped_df_by_soc(self, df):
-        # filtered = df[
-        #     (df["Battery Current(A)"] >= -self.max_current) & (df["Battery Current(A)"] <= -self.min_current) | 
-        #     (df["Battery Current(A)"] >= self.min_current) & (df["Battery Current(A)"] <= self.max_current)
-        # ]
         return df.groupby("SoC").agg({
-            "Battery Voltage(V)": "mean",
-            "Battery Current(A)": "mean",
+            "Battery Voltage(V)": "median",
+            "Battery Current(A)": "median",
             'time_diff_sec': "mean"
         }).reset_index()
     
+    def smooth_voltages(self, df):
+        x = df["SoC"]
+        y = df["Battery Voltage(V)"]
+
+        # Polynomial fit for smoother voltage
+        poly_fit = Polynomial.fit(x, y, deg=5)
+        smoothed_voltage = poly_fit(x)
+
+        # Reattach all original fields with smoothed voltage
+        smoothed_df = df.copy()
+        smoothed_df["Battery Voltage(V)"] = smoothed_voltage
+
+        # Optional: insert empty Timestamp if not present
+        if "Timestamp" not in smoothed_df.columns:
+            smoothed_df["Timestamp"] = pd.NaT
+
+        return smoothed_df
+    
 
 
-    def get_discharging_data(self, df):
-        filtered = df[(df["Battery Current(A)"] >= self.min_current) & (df["Battery Current(A)"] <= self.max_current)]
-        return self.get_grouped_df_by_soc(filtered)
+    def get_discharging_data(self, df, current_min, current_max): # positive currents
+        filtered = df[(df["Battery Current(A)"] >= current_min) & (df["Battery Current(A)"] <= current_max)]
+        grouped_df = self.get_grouped_df_by_soc(filtered)
+    
+        return self.smooth_voltages(grouped_df)
 
-    def get_charging_data(self, df):
-        filtered = df[(df["Battery Current(A)"] >= -self.max_current) & (df["Battery Current(A)"] <= -self.min_current)]
-        return self.get_grouped_df_by_soc(filtered)
+    def get_charging_data(self, df, current_min, current_max): # negative currents
+        filtered = df[(df["Battery Current(A)"] >= current_max) & (df["Battery Current(A)"] <= current_min)]
+        grouped_df = self.get_grouped_df_by_soc(filtered)
+
+        return self.smooth_voltages(grouped_df)
