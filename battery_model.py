@@ -1,5 +1,8 @@
 import numpy as np
 import scipy.optimize as opt
+import pandas as pd
+from numpy.polynomial.polynomial import Polynomial
+
 
 class BatteryModel:
     def __init__(self, R=8.314, T=298, Ec=50, Cr=1.0, Ed=50, Q=100, Dr=1.0):
@@ -26,7 +29,7 @@ class BatteryModel:
 
     def _V0(self, a, soc, rr):
         return (a[21] + a[22]*rr + a[23]*(rr**2)) * np.exp(-a[24]*soc) + (a[25] + a[26]*soc + a[27]*(soc**2) + a[28]*(soc**3)) - a[29]*rr + a[30]*(rr**2)
-    
+
     def terminal_voltage(self, I, t, C, params, soc, isCharging):
         rr = 1.0
         if isCharging:
@@ -40,7 +43,7 @@ class BatteryModel:
 
         voltage = ((self.Q/C + I*R2) * np.exp(-(t / (R2 * C1)))) + V0 - (I*(R1 + R2))
         return voltage
-    
+
 
     # Capacity degradation model function
     def degradation_model(self, params, x):
@@ -56,9 +59,9 @@ class BatteryModel:
         # Optimize A, B, C, D to best fit the battery data
         initial_guess = [0.1, 0.1, 1.2, 1.5]  # Starting estimates
         return opt.minimize(self._error_function, initial_guess, method="L-BFGS-B")
-    
+
     def get_predicted_voltages(self, df, C, params, isCharging):
-        return df.apply(
+        calculated_voltages = df.apply(
             lambda row: self.terminal_voltage(
                 I=row["Battery Current(A)"],
                 t=row["time_diff_sec"],
@@ -69,4 +72,9 @@ class BatteryModel:
             ),
             axis=1
         )
-    
+
+        return self.smooth_voltages(df["SoC"], calculated_voltages)
+
+    def smooth_voltages(self, soc, voltages):
+        poly_fit = Polynomial.fit(soc, voltages, deg=7)
+        return poly_fit(soc)
