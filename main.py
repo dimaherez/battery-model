@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import least_squares
-from sklearn.metrics import r2_score
 
 from GA import GeneticAlgorithm
 from battery_model import BatteryModel
@@ -88,7 +87,7 @@ def objective_function(params, df, C, isCharging):
     #penalize error spread instead of raw prediction variance
     errors = true_vals - predicted_vals
     spread_penalty = np.var(errors)
-    alpha = 0.5
+    alpha = 0.7
     return mse + alpha * spread_penalty
 
 def plot(measured_df, predicted_df, isCharging, sheet_name: str):

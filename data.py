@@ -4,10 +4,10 @@ from numpy.polynomial.polynomial import Polynomial
 # data_test.xlsx data_v3_02_11_to_06_10.xlsx
 class DataProvider:
     def __init__(self):
-        self.file_path = "data_v3_02_11_to_06_10.xlsx"
+        self.file_path = "data_test.xlsx"
         self.cols = ["Timestamp", "SoC(%)", "Battery Current(A)", "Battery Voltage(V)"]
         self.searching_current = 10
-        self.spread = 3
+        self.spread = 2
         self.min_current = self.searching_current - self.spread
         self.max_current = self.searching_current + self.spread
 
@@ -60,14 +60,14 @@ class DataProvider:
 
 
 
-    def get_discharging_data(self, df, current_min, current_max): # positive currents
-        filtered = df[(df["Battery Current(A)"] >= current_min) & (df["Battery Current(A)"] <= current_max)]
+    def get_discharging_data(self, df): # positive currents
+        filtered = df[(df["Battery Current(A)"] >= self.min_current) & (df["Battery Current(A)"] <= self.max_current)]
         grouped_df = self.get_grouped_df_by_soc(filtered)
 
         return self.smooth_voltages(grouped_df)
 
-    def get_charging_data(self, df, current_min, current_max): # negative currents
-        filtered = df[(df["Battery Current(A)"] >= current_max) & (df["Battery Current(A)"] <= current_min)]
+    def get_charging_data(self, df): # negative currents
+        filtered = df[(df["Battery Current(A)"] >= -self.max_current) & (df["Battery Current(A)"] <= -self.min_current)]
         grouped_df = self.get_grouped_df_by_soc(filtered)
 
         return self.smooth_voltages(grouped_df)
