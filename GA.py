@@ -3,7 +3,7 @@ import random
 import matplotlib.pyplot as plt
 
 class GeneticAlgorithm:
-    def __init__(self, pop_size=100, generations=100, mutation_rate=0.8):
+    def __init__(self, pop_size=100, generations=500, mutation_rate=0.8):
         self.pop_size = pop_size
         self.generations = generations
         self.mutation_rate = mutation_rate
@@ -13,8 +13,8 @@ class GeneticAlgorithm:
         self.initial_guess = np.random.uniform(0.001, 1.0, 31)
 
 
-    def evaluate(self, population, df, C, fitness_function, isCharging):
-        return [fitness_function(ind, df, C, isCharging) for ind in population]
+    def evaluate(self, population, fitness_function, searching_current, battery_model, df, isCharging):
+        return [fitness_function(ind, searching_current, battery_model, df, isCharging) for ind in population]
 
     def select_parents(self, population, fitness, tournament_size=20):
         parents = []
@@ -45,11 +45,11 @@ class GeneticAlgorithm:
         return population
 
 
-    def optimize(self, df, C, fitness_function, isCharging, plot=True):
+    def optimize(self, fitness_function, searching_current, battery_model, df, isCharging, plot=True):
         population = self.initial_guess
         count = 1
         for gen in range(self.generations):
-            fitness = self.evaluate(population, df, C, fitness_function, isCharging)
+            fitness = self.evaluate(population, fitness_function, searching_current, battery_model, df, isCharging)
             best_fitness = min(fitness)  # lower is better (assumes a loss function)
             self.fitness_history.append(best_fitness)
 
@@ -69,7 +69,7 @@ class GeneticAlgorithm:
             plt.legend()
             plt.show()
 
-        return min(population, key=lambda x: fitness_function(x, df, C, isCharging))
+        return min(population, key=lambda x: fitness_function(x, searching_current, battery_model, df, isCharging))
     
     def init_generation(self, base_individual):
         self.initial_guess = []

@@ -4,9 +4,9 @@ from numpy.polynomial.polynomial import Polynomial
 # data_test.xlsx data_v3_02_11_to_06_10.xlsx
 class DataProvider:
     def __init__(self):
-        self.file_path = "data_test.xlsx"
+        self.file_path = "data_v3_02_11_to_06_10.xlsx"
         self.cols = ["Timestamp", "SoC(%)", "Battery Current(A)", "Battery Voltage(V)"]
-        self.searching_current = 10
+        self.searching_current = 30
         self.spread = 2
         self.min_current = self.searching_current - self.spread
         self.max_current = self.searching_current + self.spread
@@ -35,8 +35,8 @@ class DataProvider:
 
     def get_grouped_df_by_soc(self, df):
         return df.groupby("SoC").agg({
-            "Battery Voltage(V)": "median",
-            "Battery Current(A)": "median",
+            "Battery Voltage(V)": "mean",
+            "Battery Current(A)": "mean",
             'time_diff_sec': "mean"
         }).reset_index()
 
@@ -65,9 +65,11 @@ class DataProvider:
         grouped_df = self.get_grouped_df_by_soc(filtered)
 
         return self.smooth_voltages(grouped_df)
+        #return grouped_df
 
     def get_charging_data(self, df): # negative currents
         filtered = df[(df["Battery Current(A)"] >= -self.max_current) & (df["Battery Current(A)"] <= -self.min_current)]
         grouped_df = self.get_grouped_df_by_soc(filtered)
 
         return self.smooth_voltages(grouped_df)
+        #return grouped_df
